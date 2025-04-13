@@ -1,0 +1,7 @@
+user(user_id, user_type, name, job_num, user_name, user_password, gender, age);
+books(book_id, ISBN, book_name, publisher, author, retail_price, quantity);
+purchase_list(purchase_id, book_id, purchase_price, purchase_amount, purchase_status, create_time, operator_id);
+sale_list(sale_id, book_id, sale_amount, sale_time);
+finance(bill_id, bill_status, time);
+finance_sale_bill(bill_id, sale_id);
+finance_purchase_bill(bill_id, purchase_id);
