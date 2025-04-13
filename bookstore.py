@@ -1,5 +1,4 @@
 # 经典的，痛苦的，一针见血的，边学边开发
-# 参考学习链接：https://www.runoob.com/flask/flask-basic-concept.html
 
 from flask import Flask
 from config import Config    # 从配置文件读取数据库URI
