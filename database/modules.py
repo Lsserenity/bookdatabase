@@ -14,7 +14,7 @@ class User(db.Model):
     job_num = db.Column(db.String(6), unique=True, nullable=False)
     user_name = db.Column(db.String(30), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    gender = db.Column(db.Enum('male', 'female', 'other',name='gender'), nullable=False)
+    gender = db.Column(db.Enum('male', 'female', 'other', name='gender'), nullable=False)
     age = db.Column(db.Integer, db.CheckConstraint('age >= 0'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -39,6 +39,19 @@ class Book(db.Model):
     def rollback_if_empty(self, session):
         if self.quantity == 0:
             session.delete(self)
+
+    def to_dic(self):
+        book = {
+            'book_id': self.book_id,
+            'ISBN': self.ISBN,
+            'book_name': self.book_name,
+            'publisher': self.publisher,
+            'author': self.author,
+            'retail_price': self.retail_price,
+            'quantity': self.quantity
+        }
+
+        return book
 
 
 class Purchase(db.Model):
