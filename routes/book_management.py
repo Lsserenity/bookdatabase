@@ -1,9 +1,9 @@
+# 书籍基本信息的数据库操作模块
 from flask import session, jsonify, request, Blueprint
 from database.modules import Book
 from database import db
 
 book_bp = Blueprint('book', __name__)
-
 
 # 稍后在bookstore.py或routes/__init__.py中注册这个接口
 
@@ -20,6 +20,7 @@ def search():
     author = data.get('author')
     publisher = data.get('publisher')
     ISBN = data.get('ISBN')
+    status = 'normal'
 
     filters = []
     if book_name:
@@ -37,6 +38,7 @@ def search():
             'msg': '请至少输入一个正确的查询条件！'
         }), 400
 
+    filters.append(Book.book_status == 'normal')
     books = Book.query.filter(*filters).all()
 
     if not books:
@@ -67,7 +69,7 @@ def modification(book_id):
 
     target = Book.query.filter_by(book_id=book_id).first()
 
-    if not target:
+    if not target or target.book_status == 'delete':
         return jsonify({
             'code': 1,
             'msg': '没有修改目标，请输入中却的book_id'

@@ -34,11 +34,13 @@ class Book(db.Model):
     author = db.Column(UnicodeText(), nullable=False)
     retail_price = db.Column(db.Numeric(5, 2), nullable=False)
     quantity = db.Column(db.Integer(), nullable=False)
-
+    book_status = db.Column(db.Enum('normal', 'delete', name='book_status'), default='normal', nullable=False)
     # 购买时候如果需要撤销的时候检查是否为之前没有的book的回滚函数
+
     def rollback_if_empty(self, session):
         if self.quantity == 0:
-            session.delete(self)
+            self.book_status = 'delete'
+            db.session.commit()
 
     def to_dic(self):
         book = {
