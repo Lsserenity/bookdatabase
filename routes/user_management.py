@@ -6,6 +6,7 @@ user_bp = Blueprint('user', __name__)
 # 稍后在bookstore.py或routes/__init__.py中注册这个接口
 
 
+# 用户登录接口，将信息存入session
 @user_bp.route('/login', methods=['POST'])
 def login():
     data = request.json  # 获取前端传来的JSON数据
@@ -59,10 +60,11 @@ def get_me():
     })
 
 
+# 用户登出接口，清除session信息
 @user_bp.route('/logout', methods=['GET'])
 def logout():
     if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录'})
+        return jsonify({'code': 1, 'msg': '请先登录'}), 401
 
     session.clear()
 
@@ -72,13 +74,14 @@ def logout():
     })
 
 
+# super用户注册新用户
 @user_bp.route('/register', methods=['POST'])
 def register():
     if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录'})
+        return jsonify({'code': 1, 'msg': '请先登录'}), 401
 
     if session['user_type'] != 'super':
-        return jsonify({'code': 1, 'msg': '用户权限不足'})
+        return jsonify({'code': 1, 'msg': '用户权限不足'}), 402
 
     data = request.json  # 获取前端传来的JSON数据
 
@@ -91,6 +94,9 @@ def register():
 
     if User.query.filter_by(user_name=username).first():
         return jsonify({'code': 1, 'msg': '用户名已存在！'}), 400
+
+    if len(job_num) != 6 or not job_num.isdigit():
+        return jsonify({'code': 1, 'msg': '工号必须为6位数字'}), 400
 
     user = User(
         user_type='normal',
@@ -107,13 +113,14 @@ def register():
     return jsonify({'code': 0, 'msg': '注册成功'})
 
 
+# super用户查看所有用户的信息
 @user_bp.route('/all_users', methods=['GET'])
 def all_users():
     if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录'})
+        return jsonify({'code': 1, 'msg': '请先登录'}), 401
 
     if session['user_type'] != 'super':
-        return jsonify({'code': 1, 'msg': '用户权限不足'})
+        return jsonify({'code': 1, 'msg': '用户权限不足'}), 402
 
     users = User.query.all()
     user_list = []
@@ -135,6 +142,7 @@ def all_users():
     })
 
 
+# 根据用户类型分配对应的修改用户信息的权限
 @user_bp.route('/update', methods=['POST'])
 def update():
 
@@ -149,10 +157,10 @@ def update():
     userid = data.get('user_id')
 
     if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录！'})
+        return jsonify({'code': 1, 'msg': '请先登录！'}), 401
 
     if userid != session['user_id'] and session['user_type'] != 'super':
-        return jsonify({'code': 1, 'msg': '用户权限不足！'})
+        return jsonify({'code': 1, 'msg': '用户权限不足！'}), 402
 
     user = User.query.filter_by(user_id=userid).first()
 
@@ -171,7 +179,7 @@ def update():
     return jsonify({'code': 0, 'msg': '修改成功'})
 
 
-# 删除某个用户
+# super用户删除某个用户
 @user_bp.route('/delete_user', methods=['DELETE'])
 def delete_user():
 
@@ -195,6 +203,7 @@ def delete_user():
     return jsonify({'code': 0, 'msg': '删除成功'})
 
 
+# 重置密码
 @user_bp.route('/reset_password', methods=['POST'])
 def reset_password():
 
@@ -205,7 +214,7 @@ def reset_password():
     new_password = data.get('new_password')
 
     if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录！'})
+        return jsonify({'code': 1, 'msg': '请先登录！'}), 401
 
     user = User.query.filter_by(user_name=username).first()
 
@@ -213,7 +222,7 @@ def reset_password():
         return jsonify({'code': 1, 'msg': '用户不存在！'}), 404
 
     if user.user_id != session['user_id'] and session['user_type'] != 'super':
-        return jsonify({'code': 1, 'msg': '用户权限不足！'})
+        return jsonify({'code': 1, 'msg': '用户权限不足！'}), 402
 
     if user.check_password(old_password) and not user.check_password(new_password):
         user.set_password(new_password)
@@ -221,6 +230,6 @@ def reset_password():
         return jsonify({'code': 0, 'msg': '密码修改成功！'})
 
     elif not user.check_password(old_password):
-        return jsonify({'code': 1, 'msg': '请输入正确的旧密码！'})
+        return jsonify({'code': 1, 'msg': '请输入正确的旧密码！'}), 404
     else:
-        return jsonify({'code': 1, 'msg': '新密码不可与原密码相同！'})
+        return jsonify({'code': 1, 'msg': '新密码不可与原密码相同！'}), 400

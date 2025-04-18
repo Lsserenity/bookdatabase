@@ -4,11 +4,10 @@ from database.modules import Book
 from database import db
 
 book_bp = Blueprint('book', __name__)
-
 # 稍后在bookstore.py或routes/__init__.py中注册这个接口
 
 
-# 或许可以改成post请求更加安全？
+# 根据输入查询书籍
 @book_bp.route('/search', methods=['GET'])
 def search():
     if 'user_id' not in session:
@@ -20,7 +19,6 @@ def search():
     author = data.get('author')
     publisher = data.get('publisher')
     ISBN = data.get('ISBN')
-    status = 'normal'
 
     filters = []
     if book_name:
@@ -54,6 +52,7 @@ def search():
     })
 
 
+# 根据BOOK_ID修改书籍信息
 @book_bp.route('/books/<int:book_id>', methods=['PUT'])
 def modification(book_id):
     # 书籍名称、作者、出版社、零售价格

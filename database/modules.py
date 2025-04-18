@@ -1,10 +1,11 @@
 # 数据库定义
-from .import db
 from sqlalchemy import UnicodeText
 from hashlib import md5
 from datetime import datetime
 from sqlalchemy import ForeignKey
+from .import db
 
+print(f"[bookstore] db id: {id(db)}")
 
 class User(db.Model):
 
@@ -37,7 +38,7 @@ class Book(db.Model):
     book_status = db.Column(db.Enum('normal', 'delete', name='book_status'), default='normal', nullable=False)
     # 购买时候如果需要撤销的时候检查是否为之前没有的book的回滚函数
 
-    def rollback_if_empty(self, session):
+    def rollback_if_empty(self):
         if self.quantity == 0:
             self.book_status = 'delete'
             db.session.commit()
@@ -65,6 +66,7 @@ class Purchase(db.Model):
     purchase_status = db.Column(db.Enum('unpaid', 'paid', 'returned', name='purchase_status'), nullable=False, default='unpaid')
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
     operator_id = db.Column(db.Integer(), ForeignKey('user.user_id'), nullable=False)
+    onstage = db.Column(db.Enum('no', 'yes', name='onstage'), nullable=False, default='no')
 
 
 class Sale(db.Model):
