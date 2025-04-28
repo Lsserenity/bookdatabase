@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>图书管理系统-登录</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="login-container">
+    <h2>欢迎登录图书管理系统</h2>
+
+    <form id="login-form">
+        <input type="text" id="user_name" name="user_name" placeholder="用户名" required>
+        <input type="password" id="password" name="password" placeholder="密码" required>
+        <button type="submit">登录</button>
+    </form>
+    <div id="error-message" style="color:red;"></div>
+
+</div>
+
+<script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // 阻止表单默认提交
+        login();
+    });
+
+    function login() {
+        const username = document.getElementById('user_name').value;
+        const password = document.getElementById('password').value;
+
+        fetch('/api/user/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_name: username,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data); // 打印到控制台方便调试
+            if (data.code === 0) {
+                alert('登录成功！');
+                window.location.href = '/home';  // 成功后跳转
+            } else {
+                document.getElementById('error-message').textContent = data.msg;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('请求失败！');
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -22,7 +22,7 @@ def login():
         # 登录成功，写入session
         session['user_id'] = user.user_id
         # session['user_status'] = 'on'
-        # session['user_name'] = user.user_name
+        session['user_name'] = user.user_name
         session['user_type'] = user.user_type
         # 是否需要将该用户的所有信息都载入session？还是检测到查找需要再查找数据库，载入？
 
@@ -61,7 +61,7 @@ def get_me():
 
 
 # 用户登出接口，清除session信息
-@user_bp.route('/logout', methods=['GET'])
+@user_bp.route('/logout', methods=['POST'])
 def logout():
     if 'user_id' not in session:
         return jsonify({'code': 1, 'msg': '请先登录'}), 401

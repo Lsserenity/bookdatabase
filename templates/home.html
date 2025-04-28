@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>图书管理系统-首页</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="navbar">
+    欢迎，{{ username }}！
+    <button onclick="logout()">退出登录</button>
+</div>
+
+<div class="home-container">
+    <button onclick="location.href='/inventory'">库存管理</button>
+    <button onclick="location.href='/books'">书籍管理</button>
+    <button onclick="location.href='/finance'">财务信息</button>
+    <button onclick="location.href='/user'">用户信息</button>
+</div>
+
+<script>
+function logout() {
+    fetch('/api/user/logout', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => {
+        if (data.code === 0) {
+            window.location.href = '/';
+        } else {
+            alert('登出失败: ' + data.msg);
+        }
+    });
+}
+</script>
+
+</body>
+</html>
