@@ -50,6 +50,7 @@ def get_me():
 
     return jsonify({
         'code': 0,
+        'user_id': user.user_id,
         'user_name': user.user_name,
         'user_type': user.user_type,
         'name': user.name,
