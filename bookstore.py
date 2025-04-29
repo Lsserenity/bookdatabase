@@ -56,5 +56,10 @@ def home():
     return render_template('home.html', username=username)
 
 
+@app.route('/user')
+def user_page():
+    return render_template('user.html')
+
+
 if __name__ == '__main__':
     app.run(debug=True)

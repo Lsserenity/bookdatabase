@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>图书管理系统 - 用户管理</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="navbar">
+      <div>欢迎，<span id="welcome-username"></span>！</div>
+      <button onclick="logout()">退出登录</button>
+    </div>
+    <!-- <div class="navbar">
+      欢迎，{{ username }}！
+      <button onclick="logout()">退出登录</button>
+    </div> -->
+
+    <div class="user-container">
+      <h2>用户管理</h2>
+      <div id="user-operations" class="ops-bar">
+        <!-- 后面动态放按钮 -->
+      </div>
+
+      <table id="user-table">
+        <thead id="user-table-head"></thead>
+        <tbody id="user-table-body"></tbody>
+      </table>
+
+      <div id="form-area" style="margin-top: 20px">
+        <!-- 这里是动态弹出的修改、新增、重置密码等表单 -->
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/user.js') }}"></script>
+  </body>
+</html>
