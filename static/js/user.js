@@ -121,7 +121,7 @@ function showAddUserForm() {
             <input id="new-password" type="password" placeholder="密码" style="width: 100%; margin: 5px 0;"><br>
             <input id="new-name" placeholder="姓名" style="width: 100%; margin: 5px 0;"><br>
             <input id="new-jobnum" placeholder="工号（6位数字）" style="width: 100%; margin: 5px 0;"><br>
-            <input id="new-gender" placeholder="性别" style="width: 100%; margin: 5px 0;"><br>
+            <input id="new-gender" placeholder="性别（male or female)" style="width: 100%; margin: 5px 0;"><br>
             <input id="new-age" type="number" placeholder="年龄" style="width: 100%; margin: 5px 0;"><br>
             <button onclick="submitNewUser()" style="margin-right: 10px;">提交</button>
             <button onclick="closeAddUserForm()">取消</button>
@@ -181,5 +181,120 @@ function closeAddUserForm() {
     const modal = document.getElementById('add-user-modal');
     if (modal) {
         document.body.removeChild(modal);
+    }
+}
+
+function editUser(user_id) {
+    // 获取表格中该用户的现有数据
+    const row = [...document.querySelectorAll('#user-table-body tr')]
+        .find(tr => tr.querySelector('button')?.onclick?.toString().includes(`${user_id})`));
+
+    if (!row) {
+        alert('找不到用户信息');
+        return;
+    }
+
+    const cells = row.querySelectorAll('td');
+    const username = cells[0].innerText;
+    const name = cells[1].innerText;
+    const job_num = cells[2].innerText;
+    const gender = cells[3].innerText;
+    const age = cells[4].innerText;
+
+    const modal = document.createElement('div');
+    modal.id = 'edit-user-modal';
+    modal.style = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5); display: flex;
+        justify-content: center; align-items: center; z-index: 1000;
+    `;
+    modal.innerHTML = `
+        <div style="background: white; padding: 20px; border-radius: 8px; width: 300px;">
+            <h3>修改用户信息</h3>
+            <input id="edit-username" value="${username}" placeholder="用户名" style="width: 100%; margin: 5px 0;"><br>
+            <input id="edit-name" value="${name}" placeholder="姓名" style="width: 100%; margin: 5px 0;"><br>
+            <input id="edit-jobnum" value="${job_num}" placeholder="工号" style="width: 100%; margin: 5px 0;"><br>
+            <input id="edit-gender" value="${gender}" placeholder="性别" style="width: 100%; margin: 5px 0;"><br>
+            <input id="edit-age" type="number" value="${age}" placeholder="年龄" style="width: 100%; margin: 5px 0;"><br>
+            <button onclick="submitEditUser(${user_id})" style="margin-right: 10px;">提交</button>
+            <button onclick="closeEditUserForm()">取消</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeEditUserForm() {
+    const modal = document.getElementById('edit-user-modal');
+    if (modal) {
+        document.body.removeChild(modal);
+    }
+}
+
+async function submitEditUser(user_id) {
+    const user_name = document.getElementById('edit-username').value.trim();
+    const name = document.getElementById('edit-name').value.trim();
+    const job_number = document.getElementById('edit-jobnum').value.trim();
+    const gender = document.getElementById('edit-gender').value.trim();
+    const age = parseInt(document.getElementById('edit-age').value.trim());
+
+    if (!user_name || !name || !job_number || !gender || !age) {
+        alert('请填写完整信息');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/user/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: user_id,
+                user_name,
+                name,
+                job_number,
+                gender,
+                age
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.code === 0) {
+            alert('修改成功！');
+            closeEditUserForm();
+            // 重新加载，刷新表格
+            const me = await fetch('/api/user/me').then(r => r.json());
+            await loadUserTable(me.user_type === 'super');
+        } else {
+            alert(data.msg || '修改失败');
+        }
+
+    } catch (err) {
+        console.error('修改失败', err);
+        alert('网络错误');
+    }
+}
+
+async function deleteUser(user_id) {
+    const confirmed = confirm("确定要删除该用户吗？删除后无法恢复！");
+    if (!confirmed) return;
+
+    try {
+        const res = await fetch('/api/user/delete_user', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id })
+        });
+
+        const data = await res.json();
+        if (data.code === 0) {
+            alert('删除成功！');
+            const me = await fetch('/api/user/me').then(r => r.json());
+            await loadUserTable(me.user_type === 'super');
+        } else {
+            alert(data.msg || '删除失败');
+        }
+    } catch (error) {
+        console.error('删除用户失败', error);
+        alert('删除失败，请重试');
     }
 }
