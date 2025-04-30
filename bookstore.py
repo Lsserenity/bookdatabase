@@ -31,7 +31,7 @@ def init_super():
                 gender='other',
                 age=0
             )
-            admin.set_password('123456')
+            admin.set_password('2345610')
             db.session.add(admin)
             db.session.commit()
 

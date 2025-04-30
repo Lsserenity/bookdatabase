@@ -76,7 +76,8 @@ async function loadUserTable(isSuper) {
                 <td>${user.age}</td>
                 <td>
                     <button onclick="editUser(${user.user_id}, ${isSuper})">修改</button>
-                    ${isSuper ? `<button onclick="deleteUser(${user.user_id})">删除</button>` : ''}
+                    ${isSuper ? `<button onclick="deleteUser(${user.user_id})">删除</button>`
+                    : `<button onclick="changePassword(${user.user_id}, '${user.user_name}')">重置密码</button>`}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -223,7 +224,6 @@ function editUser(user_id, isSuper) {
             <input id="edit-jobnum" value="${job_num}" placeholder="工号" style="width: 100%; margin: 5px 0;"><br>
             <input id="edit-gender" value="${gender}" placeholder="性别" style="width: 100%; margin: 5px 0;"><br>
             <input id="edit-age" type="number" value="${age}" placeholder="年龄" style="width: 100%; margin: 5px 0;"><br>
-            <input id="edit-age" value="${age}" type="number" placeholder="年龄" style="width:100%;margin:5px 0;"><br>
             ${pwdInput}
             <button onclick="submitEditUser(${user_id}, ${isSuper})" style="margin-right: 10px;">提交</button>
             <button onclick="closeEditUserForm()">取消</button>
@@ -240,12 +240,6 @@ function closeEditUserForm() {
 }
 
 async function submitEditUser(user_id, isSuper) {
-    // const user_name = document.getElementById('edit-username').value.trim();
-    // const name = document.getElementById('edit-name').value.trim();
-    // const job_number = document.getElementById('edit-jobnum').value.trim();
-    // const gender = document.getElementById('edit-gender').value.trim();
-    // const age = parseInt(document.getElementById('edit-age').value.trim());
-
     const payload = {
         user_id,
         user_name: document.getElementById('edit-username').value.trim(),
@@ -259,11 +253,6 @@ async function submitEditUser(user_id, isSuper) {
         const pwd = document.getElementById('edit-password').value.trim();
         if (pwd) payload.password = pwd;
     }
-
-    // if (!user_name || !name || !job_number || !gender || !age) {
-    //     alert('请填写完整信息');
-    //     return;
-    // }
 
     try {
         const res = await fetch('/api/user/update', {
@@ -336,26 +325,9 @@ async function logout() {
 }
 
 
-// ===== 新增：普通用户“修改密码”按钮渲染 =====
-// 在页面加载完毕后，根据 isSuper 动态追加
-// 建议在 window.onload 的末尾或 loadUserTable 调用之后加：
-; (async function addNormalChangePwdBtn() {
-    const me = await fetch('/api/user/me').then(r => r.json());
-    if (me.code !== 0) return;
-    if (me.user_type !== 'super') {
-        // 普通用户在操作区加一个“修改密码”按钮
-        const ops = document.getElementById('user-operations');
-        const btn = document.createElement('button');
-        btn.innerText = '修改密码';
-        btn.className = 'btn-primary';
-        btn.onclick = showChangePasswordForm;
-        ops.appendChild(btn);
-    }
-})();
-
-
-// ===== 新增：修改密码弹窗和提交逻辑 =====
-function showChangePasswordForm() {
+// ===== 新增：行内“修改密码”功能 =====
+function changePassword(user_id, user_name) {
+    // 复用之前的弹窗逻辑，但带上用户名
     const existing = document.getElementById('change-password-modal');
     if (existing) return;
 
@@ -368,8 +340,10 @@ function showChangePasswordForm() {
     `;
     modal.innerHTML = `
       <div style="background:white;padding:20px;border-radius:8px;width:300px;">
-        <h3>修改密码</h3>
-        <input id="old-pwd" type="password" placeholder="旧密码" style="width:100%;margin:5px 0;"><br>
+        <h3>重置密码</h3>
+        ${sessionStorage.getItem('user_type') === 'super'
+            ? ''
+            : `<input id="old-pwd" type="password" placeholder="旧密码" style="width:100%;margin:5px 0;"><br>`}
         <input id="new-pwd" type="password" placeholder="新密码(≥6位)" style="width:100%;margin:5px 0;"><br>
         <input id="conf-pwd" type="password" placeholder="确认新密码" style="width:100%;margin:5px 0;"><br>
         <button onclick="submitChangePassword()" style="margin-right:10px;">提交</button>
@@ -379,25 +353,23 @@ function showChangePasswordForm() {
     document.body.appendChild(modal);
 }
 
-function closeChangePasswordForm() {
-    const mdl = document.getElementById('change-password-modal');
-    if (mdl) document.body.removeChild(mdl);
-}
-
 async function submitChangePassword() {
-    const oldPwd = document.getElementById('old-pwd').value.trim();
-    const newPwd = document.getElementById('new-pwd').value.trim();
-    const confPwd = document.getElementById('conf-pwd').value.trim();
+    const payload = {
+        old_password: document.getElementById('old-pwd').value.trim(),
+        new_password: document.getElementById('new-pwd').value.trim(),
+        conf_password: document.getElementById('conf-pwd').value.trim()
+    };
 
-    if (!oldPwd || !newPwd || !confPwd) {
+    // 校验
+    if (!payload.old_password || !payload.new_password || !payload.conf_password) {
         alert('请填写所有字段');
         return;
     }
-    if (newPwd.length < 6) {
+    if (payload.new_password.length < 6) {
         alert('新密码至少 6 位');
         return;
     }
-    if (newPwd !== confPwd) {
+    if (payload.new_password !== payload.conf_password) {
         alert('两次输入不一致');
         return;
     }
@@ -408,8 +380,8 @@ async function submitChangePassword() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 user_name: document.getElementById('welcome-username').innerText,
-                old_password: oldPwd,
-                new_password: newPwd
+                old_password: payload.old_password,
+                new_password: payload.new_password
             })
         });
         const data = await res.json();
@@ -423,4 +395,9 @@ async function submitChangePassword() {
         console.error('修改密码失败', err);
         alert('网络错误');
     }
+}
+
+function closeChangePasswordForm() {
+    const mdl = document.getElementById('change-password-modal');
+    if (mdl) document.body.removeChild(mdl);
 }
