@@ -67,6 +67,7 @@ async function loadUserTable(isSuper) {
 
         users.forEach(user => {
             const tr = document.createElement('tr');
+            tr.setAttribute('data-user-id', user.user_id);
             tr.innerHTML = `
                 <td>${user.user_name}</td>
                 <td>${user.name}</td>
@@ -74,7 +75,7 @@ async function loadUserTable(isSuper) {
                 <td>${user.gender}</td>
                 <td>${user.age}</td>
                 <td>
-                    <button onclick="editUser(${user.user_id})">修改</button>
+                    <button onclick="editUser(${user.user_id}, ${isSuper})">修改</button>
                     ${isSuper ? `<button onclick="deleteUser(${user.user_id})">删除</button>` : ''}
                 </td>
             `;
@@ -184,10 +185,10 @@ function closeAddUserForm() {
     }
 }
 
-function editUser(user_id) {
+function editUser(user_id, isSuper) {
     // 获取表格中该用户的现有数据
-    const row = [...document.querySelectorAll('#user-table-body tr')]
-        .find(tr => tr.querySelector('button')?.onclick?.toString().includes(`${user_id})`));
+    const row = [...document.querySelectorAll(
+        `#user-table-body tr[data-user-id="${user_id}"]`)][0];
 
     if (!row) {
         alert('找不到用户信息');
@@ -208,6 +209,12 @@ function editUser(user_id) {
         background-color: rgba(0,0,0,0.5); display: flex;
         justify-content: center; align-items: center; z-index: 1000;
     `;
+
+    // 如果是 super，增加密码输入框
+    const pwdInput = isSuper
+        ? `<input id="edit-password" type="password" placeholder="新密码（留空不修改）" style="width:100%;margin:5px 0;"><br>`
+        : '';
+
     modal.innerHTML = `
         <div style="background: white; padding: 20px; border-radius: 8px; width: 300px;">
             <h3>修改用户信息</h3>
@@ -216,7 +223,9 @@ function editUser(user_id) {
             <input id="edit-jobnum" value="${job_num}" placeholder="工号" style="width: 100%; margin: 5px 0;"><br>
             <input id="edit-gender" value="${gender}" placeholder="性别" style="width: 100%; margin: 5px 0;"><br>
             <input id="edit-age" type="number" value="${age}" placeholder="年龄" style="width: 100%; margin: 5px 0;"><br>
-            <button onclick="submitEditUser(${user_id})" style="margin-right: 10px;">提交</button>
+            <input id="edit-age" value="${age}" type="number" placeholder="年龄" style="width:100%;margin:5px 0;"><br>
+            ${pwdInput}
+            <button onclick="submitEditUser(${user_id}, ${isSuper})" style="margin-right: 10px;">提交</button>
             <button onclick="closeEditUserForm()">取消</button>
         </div>
     `;
@@ -230,30 +239,37 @@ function closeEditUserForm() {
     }
 }
 
-async function submitEditUser(user_id) {
-    const user_name = document.getElementById('edit-username').value.trim();
-    const name = document.getElementById('edit-name').value.trim();
-    const job_number = document.getElementById('edit-jobnum').value.trim();
-    const gender = document.getElementById('edit-gender').value.trim();
-    const age = parseInt(document.getElementById('edit-age').value.trim());
+async function submitEditUser(user_id, isSuper) {
+    // const user_name = document.getElementById('edit-username').value.trim();
+    // const name = document.getElementById('edit-name').value.trim();
+    // const job_number = document.getElementById('edit-jobnum').value.trim();
+    // const gender = document.getElementById('edit-gender').value.trim();
+    // const age = parseInt(document.getElementById('edit-age').value.trim());
 
-    if (!user_name || !name || !job_number || !gender || !age) {
-        alert('请填写完整信息');
-        return;
+    const payload = {
+        user_id,
+        user_name: document.getElementById('edit-username').value.trim(),
+        name: document.getElementById('edit-name').value.trim(),
+        job_number: document.getElementById('edit-jobnum').value.trim(),
+        gender: document.getElementById('edit-gender').value.trim(),
+        age: parseInt(document.getElementById('edit-age').value.trim(), 10)
+    };
+
+    if (isSuper) {
+        const pwd = document.getElementById('edit-password').value.trim();
+        if (pwd) payload.password = pwd;
     }
+
+    // if (!user_name || !name || !job_number || !gender || !age) {
+    //     alert('请填写完整信息');
+    //     return;
+    // }
 
     try {
         const res = await fetch('/api/user/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: user_id,
-                user_name,
-                name,
-                job_number,
-                gender,
-                age
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();
@@ -296,5 +312,115 @@ async function deleteUser(user_id) {
     } catch (error) {
         console.error('删除用户失败', error);
         alert('删除失败，请重试');
+    }
+}
+
+// ===== 新增：退出登录 =====
+async function logout() {
+    try {
+        const res = await fetch('/api/user/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.code === 0) {
+            alert('已退出登录');
+            window.location.href = '/';
+        } else {
+            alert(data.msg || '退出失败');
+        }
+    } catch (err) {
+        console.error('退出登录失败', err);
+        alert('网络错误');
+    }
+}
+
+
+// ===== 新增：普通用户“修改密码”按钮渲染 =====
+// 在页面加载完毕后，根据 isSuper 动态追加
+// 建议在 window.onload 的末尾或 loadUserTable 调用之后加：
+; (async function addNormalChangePwdBtn() {
+    const me = await fetch('/api/user/me').then(r => r.json());
+    if (me.code !== 0) return;
+    if (me.user_type !== 'super') {
+        // 普通用户在操作区加一个“修改密码”按钮
+        const ops = document.getElementById('user-operations');
+        const btn = document.createElement('button');
+        btn.innerText = '修改密码';
+        btn.className = 'btn-primary';
+        btn.onclick = showChangePasswordForm;
+        ops.appendChild(btn);
+    }
+})();
+
+
+// ===== 新增：修改密码弹窗和提交逻辑 =====
+function showChangePasswordForm() {
+    const existing = document.getElementById('change-password-modal');
+    if (existing) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'change-password-modal';
+    modal.style = `
+        position: fixed; top:0; left:0; width:100%; height:100%;
+        background: rgba(0,0,0,0.5); display:flex;
+        justify-content:center; align-items:center; z-index:1000;
+    `;
+    modal.innerHTML = `
+      <div style="background:white;padding:20px;border-radius:8px;width:300px;">
+        <h3>修改密码</h3>
+        <input id="old-pwd" type="password" placeholder="旧密码" style="width:100%;margin:5px 0;"><br>
+        <input id="new-pwd" type="password" placeholder="新密码(≥6位)" style="width:100%;margin:5px 0;"><br>
+        <input id="conf-pwd" type="password" placeholder="确认新密码" style="width:100%;margin:5px 0;"><br>
+        <button onclick="submitChangePassword()" style="margin-right:10px;">提交</button>
+        <button onclick="closeChangePasswordForm()">取消</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeChangePasswordForm() {
+    const mdl = document.getElementById('change-password-modal');
+    if (mdl) document.body.removeChild(mdl);
+}
+
+async function submitChangePassword() {
+    const oldPwd = document.getElementById('old-pwd').value.trim();
+    const newPwd = document.getElementById('new-pwd').value.trim();
+    const confPwd = document.getElementById('conf-pwd').value.trim();
+
+    if (!oldPwd || !newPwd || !confPwd) {
+        alert('请填写所有字段');
+        return;
+    }
+    if (newPwd.length < 6) {
+        alert('新密码至少 6 位');
+        return;
+    }
+    if (newPwd !== confPwd) {
+        alert('两次输入不一致');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/user/reset_password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_name: document.getElementById('welcome-username').innerText,
+                old_password: oldPwd,
+                new_password: newPwd
+            })
+        });
+        const data = await res.json();
+        if (data.code === 0) {
+            alert('密码修改成功，请重新登录');
+            window.location.href = '/';
+        } else {
+            alert(data.msg || '修改失败');
+        }
+    } catch (err) {
+        console.error('修改密码失败', err);
+        alert('网络错误');
     }
 }

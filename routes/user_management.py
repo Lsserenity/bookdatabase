@@ -150,7 +150,7 @@ def update():
     data = request.json
 
     username = data.get('user_name')
-    # password = data.get('password')
+    password = data.get('password')
     name = data.get('name')
     job_num = data.get('job_number')
     gender = data.get('gender')
@@ -173,7 +173,9 @@ def update():
     user.job_num = job_num
     user.gender = gender
     user.age = age
-    # user.set_password(password)
+
+    if session['user_type'] == 'super' and password:
+        user.set_password(password)
 
     db.session.commit()
 
