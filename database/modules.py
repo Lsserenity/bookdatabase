@@ -1,5 +1,6 @@
 # 数据库定义
 from sqlalchemy import UnicodeText
+from sqlalchemy.orm import relationship
 from hashlib import md5
 from datetime import datetime
 from sqlalchemy import ForeignKey
@@ -35,7 +36,7 @@ class Book(db.Model):
     author = db.Column(UnicodeText(), nullable=False)
     retail_price = db.Column(db.Numeric(5, 2), nullable=False)
     quantity = db.Column(db.Integer(), nullable=False)
-    book_status = db.Column(db.Enum('normal', 'delete', name='book_status'), default='normal', nullable=False)
+    book_status = db.Column(db.Enum('normal', 'delete', 'offstage', name='book_status'), default='offstage', nullable=False)
     # 购买时候如果需要撤销的时候检查是否为之前没有的book的回滚函数
 
     def rollback_if_empty(self):
@@ -67,6 +68,7 @@ class Purchase(db.Model):
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
     operator_id = db.Column(db.Integer(), ForeignKey('user.user_id'), nullable=False)
     onstage = db.Column(db.Enum('no', 'yes', name='onstage'), nullable=False, default='no')
+    book = relationship('Book', lazy='joined')
 
     def to_dict(self):
         return {
@@ -77,7 +79,8 @@ class Purchase(db.Model):
             'purchase_status': self.purchase_status,
             'create_time': self.create_time,
             'operator_id': self.operator_id,
-            'onstage': self.onstage
+            'onstage': self.onstage,
+            'book': self.book.to_dic() 
         }
 
 

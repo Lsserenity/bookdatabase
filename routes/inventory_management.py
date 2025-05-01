@@ -121,54 +121,36 @@ def buy_new():
         return jsonify({'code': 1, 'msg': '数据库错误', 'error': str(e)}), 500
 
 
-# 批量支付
-@purchase_bp.route('/pay/batch', methods=['POST'])
-def pay_batch():
-    data = request.json
-    ids = data.get('purchase_ids', [])
-
+@purchase_bp.route('/pay/<int:purchase_id>', methods=['POST'])
+def pay_by_id(purchase_id):
     if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录'}), 401
-    if not ids:
-        return jsonify({'code': 1, 'msg': '请选择要支付的订单'}), 400
+        return jsonify({'code':1,'msg':'请先登录'}),401
 
-    updated = 0
-    for pid in ids:
-        p = Purchase.query.get(pid)
-        if p and p.purchase_status == 'unpaid':
-            p.purchase_status = 'paid'
-            db.session.add(FinancePurchaseBill(purchase_id=pid))
-            updated += 1
+    p = Purchase.query.get(purchase_id)
+    if not p or p.purchase_status!='unpaid':
+        return jsonify({'code':1,'msg':'订单状态不可支付'}),400
 
+    p.purchase_status = 'paid'
+    db.session.add(FinancePurchaseBill(purchase_id=purchase_id))
     db.session.commit()
-    return jsonify({'code': 0, 'msg': f'{updated} 条订单已支付'})
+    return jsonify({'code':0,'msg':'订单支付成功！'})
 
 
 # 书籍退货
-@purchase_bp.route('/return/<string:isbn>', methods=['POST'])
-def return_book(isbn):
+@purchase_bp.route('/return_by_id/<int:purchase_id>', methods=['POST'])
+def return_by_id(purchase_id):
     if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录'}), 401
+        return jsonify({'code':1,'msg':'请先登录'}),401
 
-    book = Book.query.filter_by(ISBN=isbn).first()
+    p = Purchase.query.get(purchase_id)
+    if not p or p.purchase_status != 'unpaid':
+        return jsonify({'code':1,'msg':'退货失败，记录不存在或不可退货'}),400
 
-    if not book:
-        return jsonify({'code': 1, 'msg': '书籍查询失败，请先添加至购买记录！'}), 404
-
-    purchase = Purchase.query.filter_by(book_id=book.book_id, purchase_status='unpaid').first()
-
-    if not purchase:
-        return jsonify({'code': 1, 'msg': '购买记录查询失败，请先添加至购买记录！'}), 404
-
-    purchase.purchase_status = 'returned'
-    book.rollback_if_empty(db.session)
-
-    try:
-        db.session.commit()
-        return jsonify({'code': 0, 'msg': '退货成功！'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'code': 1, 'msg': '数据库错误', 'error': str(e)}), 500
+    p.purchase_status = 'returned'
+    book = Book.query.get(p.book_id)
+    book.rollback_if_empty()
+    db.session.commit()
+    return jsonify({'code':0,'msg':'退货成功！'})
 
 
 # 书籍上架更新
@@ -188,6 +170,7 @@ def onstage():
         if p and p.purchase_status == 'paid' and p.onstage == 'no':
             book = Book.query.get(p.book_id)
             book.quantity = book.quantity + p.purchase_amount
+            book.book_status = 'normal'
             p.onstage = 'yes'
             updated += 1
 
@@ -254,7 +237,7 @@ def unpaid_books():
 
 
 @purchase_bp.route('/paid', methods=['GET'])
-def unpaid_books():
+def paid_books():
     if 'user_id' not in session:
         return jsonify({'code':1,'msg':'请先登录'}),401
     

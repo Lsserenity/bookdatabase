@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>库存管理 - 图书系统</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <!-- style.css 已集成 purchase.css 样式 -->
+  </head>
+  <body>
+    <div class="navbar">
+      <div>欢迎，<span id="welcome-username"></span>！</div>
+      <button onclick="logout()">退出登录</button>
+    </div>
+
+    <div class="purchase-container" style="padding: 20px">
+      <h2>库存管理</h2>
+
+      <!-- 1. 添加新订单 -->
+      <div class="ops-bar" style="margin-bottom: 20px">
+        <button id="add-order-btn" class="btn-primary">添加新订单</button>
+      </div>
+
+      <!-- 弹窗区域 -->
+      <div id="modal-area"></div>
+
+      <!-- 2. 订单筛选 -->
+      <div class="search-container">
+        <button class="btn-primary" id="show-unpaid">未支付</button>
+        <button class="btn-primary" id="show-paid">已支付</button>
+        <button class="btn-primary" id="show-all">所有订单</button>
+      </div>
+
+      <!-- 结果表格 -->
+      <div class="table-container">
+        <table id="order-table">
+          <thead>
+            <tr>
+              <th>订单ID</th>
+              <th>ISBN</th>
+              <th>Book ID</th>
+              <th>数量</th>
+              <th>单价</th>
+              <th>状态</th>
+              <th>上架</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="order-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
+  </body>
+</html>
