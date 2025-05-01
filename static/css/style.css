@@ -8,6 +8,10 @@ body {
     height: 100vh;
 }
 
+button {
+    font-family: inherit;
+}
+
 .navbar {
     background: rgba(255, 255, 255, 0.8);
     padding: 10px 20px;
@@ -81,10 +85,6 @@ body {
     box-shadow: 0 8px 15px rgba(0,0,0,0.2);
 }
 
-button {
-    font-family: inherit;
-}
-
 #user-table {
     width: 90%;
     margin: 20px auto;
@@ -143,3 +143,45 @@ button {
 .btn-primary:hover {
     background-color: #45a049;
 }
+
+.search-container {
+    padding: 20px;
+    background: #f9f9f9;
+  }
+
+.search-fields {
+    display: flex;
+    gap: 10px;
+  }
+
+  .search-fields input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1;
+  }
+  
+.search-fields button {
+    padding: 8px 16px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+.table-container {
+    padding: 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  th {
+    background: #f1f1f1;
+  }

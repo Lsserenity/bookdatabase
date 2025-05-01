@@ -121,51 +121,6 @@ def buy_new():
         return jsonify({'code': 1, 'msg': '数据库错误', 'error': str(e)}), 500
 
 
-# 全部支付
-@purchase_bp.route('/pay/all', methods=['POST'])
-def pay():
-    if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录'}), 401
-
-    books = Purchase.query.filter_by(purchase_status='unpaid').all()
-    for b in books:
-        b.purchase_status = 'paid'
-        f = FinancePurchaseBill(purchase_id=b.purchase_id)
-        db.session.add(f)
-
-    try:
-        db.session.commit()
-        return jsonify({'code': 0, 'msg': '进货成功！'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'code': 1, 'msg': '数据库错误', 'error': str(e)}), 500
-
-
-# 选择订单号支付
-@purchase_bp.route('/pay/<int:purchase_id>', methods=['POST'])
-def pay_by_id(purchase_id):
-    if 'user_id' not in session:
-        return jsonify({'code': 1, 'msg': '请先登录'}), 401
-
-    book = Purchase.query.get(purchase_id)
-
-    if not book:
-        return jsonify({'code': 1, 'msg': '订单查询失败，请输入正确的订单编号！'}), 404
-
-    if book.purchase_status != 'unpaid':
-        return jsonify({'code': 1, 'msg': '当前订单状态不可支付'}), 400
-
-    book.purchase_status = 'paid'
-
-    try:
-        db.session.add(FinancePurchaseBill(purchase_id=purchase_id))
-        db.session.commit()
-        return jsonify({'code': 0, 'msg': '订单支付成功！'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'code': 1, 'msg': '数据库错误', 'error': str(e)}), 500
-
-
 # 批量支付
 @purchase_bp.route('/pay/batch', methods=['POST'])
 def pay_batch():
@@ -189,7 +144,7 @@ def pay_batch():
     return jsonify({'code': 0, 'msg': f'{updated} 条订单已支付'})
 
 
-# 数据退货
+# 书籍退货
 @purchase_bp.route('/return/<string:isbn>', methods=['POST'])
 def return_book(isbn):
     if 'user_id' not in session:
@@ -284,3 +239,38 @@ def sale(b_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'code': 1, 'msg': '数据库错误', 'error': str(e)}), 500
+
+
+@purchase_bp.route('/unpaid', methods=['GET'])
+def unpaid_books():
+    if 'user_id' not in session:
+        return jsonify({'code':1,'msg':'请先登录'}),401
+    
+    orders = Purchase.query.filter_by(purchase_status='unpaid').all()
+    return jsonify({
+        'code':0,
+        'purchases': [o.to_dict() for o in orders]
+    })
+
+
+@purchase_bp.route('/paid', methods=['GET'])
+def unpaid_books():
+    if 'user_id' not in session:
+        return jsonify({'code':1,'msg':'请先登录'}),401
+    
+    orders = Purchase.query.filter_by(purchase_status='paid').all()
+    return jsonify({
+        'code':0,
+        'purchases': [o.to_dict() for o in orders]
+    })
+
+
+@purchase_bp.route('/purchases', methods=['GET'])
+def list_purchases():
+    if 'user_id' not in session:
+        return jsonify({'code':1,'msg':'请先登录'}),401
+    orders = Purchase.query.all()
+    return jsonify({
+        'code':0,
+        'purchases': [o.to_dict() for o in orders]
+    })

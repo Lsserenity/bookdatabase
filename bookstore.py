@@ -60,6 +60,9 @@ def home():
 def user_page():
     return render_template('user.html')
 
+@app.route('/books')
+def book_page():
+    return render_template('book.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

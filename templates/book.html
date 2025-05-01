@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>图书管理 - Bookstore</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="navbar">
+      <div>欢迎，<span id="welcome-username"></span>！</div>
+      <button onclick="logout()">退出登录</button>
+    </div>
+
+    <div class="search-container">
+      <h2>书籍查询</h2>
+      <div class="search-fields">
+        <input id="isbn" placeholder="ISBN" />
+        <input id="book_name" placeholder="书名" />
+        <input id="author" placeholder="作者" />
+        <input id="publisher" placeholder="出版社" />
+        <button id="search-btn">搜索</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="book-table">
+        <thead>
+          <tr>
+            <th>Book ID</th>
+            <th>ISBN</th>
+            <th>书名</th>
+            <th>作者</th>
+            <th>出版社</th>
+            <th>零售价格</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="book-table-body"></tbody>
+      </table>
+    </div>
+
+    <div id="modal-area"></div>
+
+    <script src="{{ url_for('static', filename='js/book.js') }}"></script>
+  </body>
+</html>

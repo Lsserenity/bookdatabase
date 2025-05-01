@@ -68,6 +68,18 @@ class Purchase(db.Model):
     operator_id = db.Column(db.Integer(), ForeignKey('user.user_id'), nullable=False)
     onstage = db.Column(db.Enum('no', 'yes', name='onstage'), nullable=False, default='no')
 
+    def to_dict(self):
+        return {
+            'purchase_id': self.purchase_id,
+            'book_id': self.book_id,
+            'purchase_price': self.purchase_price,
+            'purchase_amount': self.purchase_amount,
+            'purchase_status': self.purchase_status,
+            'create_time': self.create_time,
+            'operator_id': self.operator_id,
+            'onstage': self.onstage
+        }
+
 
 class Sale(db.Model):
 
