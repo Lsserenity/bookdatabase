@@ -204,3 +204,77 @@ button {
     cursor:pointer;background:#4CAF50;color:#fff;
   }
   .modal button:last-child { background:#aaa; }
+
+  /* —— 财务管理模块样式 —— */
+.finance-container {
+  width: 90%;
+  margin: 30px auto;
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.search-container {
+  margin-top: 20px;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.search-container .search-fields {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-container .search-fields input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-container .search-fields button {
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search-container .search-fields button:hover {
+  background: #0069d9;
+}
+
+.table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.table-container th, .table-container td {
+  padding: 12px 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.table-container th {
+  background: #4CAF50;
+  color: white;
+}
+
+.table-container tr:hover {
+  background: #f1f1f1;
+}
+
+.ops-bar button {
+  margin-right: 10px;
+}

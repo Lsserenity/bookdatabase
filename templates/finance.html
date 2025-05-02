@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>图书管理系统 - 财务管理</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="navbar">
+      <div>欢迎，<span id="welcome-username"></span>！</div>
+      <button onclick="logout()">退出登录</button>
+    </div>
+
+    <div class="finance-container">
+      <h2>财务管理</h2>
+      <div id="finance-buttons" class="ops-bar">
+        <button id="show-expenditure" class="btn-primary">支出</button>
+        <button id="show-income" class="btn-primary">收入</button>
+      </div>
+
+      <div id="finance-form" class="search-container">
+        <!-- 动态插入查询表单 -->
+      </div>
+
+      <div id="finance-table-container" class="table-container">
+        <!-- 查询结果表格 -->
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/finance.js') }}"></script>
+  </body>
+</html>

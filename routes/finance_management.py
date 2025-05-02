@@ -31,6 +31,7 @@ def sale_bill():
         Book.book_name,
         Book.publisher,
         Book.retail_price,
+        Sale.sale_amount,
         (Book.retail_price * Sale.sale_amount).label("in")
     ).join(Sale, Sale.book_id == Book.book_id
     ).join(FinanceSaleBill, FinanceSaleBill.sale_id == Sale.sale_id
@@ -41,7 +42,7 @@ def sale_bill():
     return jsonify({
         'code': 0,
         'msg': '查询成功',
-        'sales': [dict(zip(['book_id', 'ISBN', 'book_name', 'publisher', 'retail_price', 'in'], row)) for row in result]
+        'sales': [dict(zip(['book_id', 'ISBN', 'book_name', 'publisher', 'retail_price', 'sale_amount', 'in'], row)) for row in result]
     })
 
 
@@ -69,7 +70,8 @@ def purchase_bill():
         Book.ISBN,
         Book.book_name,
         Book.publisher,
-        Purchase.purchase_price
+        Purchase.purchase_price,
+        Purchase.purchase_amount,
         (Purchase.purchase_price * Purchase.purchase_amount).label("out")
     ).join(Purchase, Purchase.book_id == Book.book_id
     ).join(FinancePurchaseBill, FinancePurchaseBill.purchase_id == Purchase.purchase_id
@@ -80,5 +82,5 @@ def purchase_bill():
     return jsonify({
         'code': 0,
         'msg': '查询成功',
-        'sales': [dict(zip(['book_id', 'ISBN', 'book_name', 'publisher', 'purchase_price', 'out'], row)) for row in result]
+        'sales': [dict(zip(['book_id', 'ISBN', 'book_name', 'publisher', 'purchase_price', 'purchase_amount', 'out'], row)) for row in result]
     })

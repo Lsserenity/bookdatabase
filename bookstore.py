@@ -68,5 +68,9 @@ def book_page():
 def inventory_page():
     return render_template('inventory.html')
 
+@app.route('/finance')
+def finance_page():
+    return render_template('finance.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
