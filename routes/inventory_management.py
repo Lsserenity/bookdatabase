@@ -25,14 +25,15 @@ def buy(isbn):
     if not price or not amount:
         return jsonify({'code': 1, 'msg': '缺少价格或数量'}), 400
     # 在 buy 路由中添加：
-    if amount <= 0 or price <= 0:
-        return jsonify({'code': 1, 'msg': '数量或价格必须大于零'}), 400
 
     try:
         price = float(price)
         amount = int(amount)
-    except ValueError:
+    except (ValueError, TypeError):
         return jsonify({'code': 1, 'msg': '价格或数量格式错误'}), 400
+
+    if amount <= 0 or price <= 0:
+        return jsonify({'code': 1, 'msg': '数量或价格必须大于零'}), 400
 
     purchase = Purchase(
         book_id=book.book_id,
@@ -158,17 +159,28 @@ def return_by_id(purchase_id):
 def onstage():
     data = request.json
     ids = data.get('purchase_ids', [])
+    new_price = data.get('retail_price', None)
 
     if 'user_id' not in session:
         return jsonify({'code': 1, 'msg': '请先登录'}), 401
     if not ids:
         return jsonify({'code': 1, 'msg': '请选择要上架的书籍'}), 400
+    if new_price is None:
+        return jsonify({'code': 1, 'msg': '请提供新的零售价'}), 400
+
+    try:
+        new_price = float(new_price)
+        if new_price <= 0:
+            raise ValueError()
+    except ValueError:
+        return jsonify({'code': 1, 'msg': '零售价格式错误'}), 400
 
     updated = 0
     for pid in ids:
         p = Purchase.query.get(pid)
         if p and p.purchase_status == 'paid' and p.onstage == 'no':
             book = Book.query.get(p.book_id)
+            book.retail_price = new_price
             book.quantity = book.quantity + p.purchase_amount
             book.book_status = 'normal'
             p.onstage = 'yes'

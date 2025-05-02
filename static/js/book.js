@@ -54,7 +54,9 @@ function renderTable(books) {
         <td>${b.author}</td>
         <td>${b.publisher}</td>
         <td>${b.retail_price}</td>
-        <td><button class="edit-btn" onclick="showEditModal(${b.book_id})">修改</button></td>
+        <td>${b.quantity}</td>
+        <td><button class="edit-btn" onclick="showEditModal(${b.book_id})">修改</button>
+        <button class='sale-btn' onclick="showSaleModal(${b.book_id})">出售</button></td>
       `;
         tbody.appendChild(tr);
     });
@@ -103,4 +105,29 @@ async function submitEdit(book_id) {
     } else {
         alert(data.msg);
     }
+}
+
+function showSaleModal(bid) {
+    closeModal(); const modal = document.createElement('div'); modal.className = 'modal-mask';
+    modal.innerHTML = `
+      <div class="modal">
+        <h3>销售 Book ID:${bid}</h3>
+        <input id="sale-amt" type="number" placeholder="销售数量"><br>
+        <button onclick="submitSale(${bid})">确定</button>
+        <button onclick="closeModal()">取消</button>
+      </div>
+    `; document.getElementById('modal-area').appendChild(modal);
+}
+
+async function submitSale(bid) {
+    const amt = document.getElementById('sale-amt').value;
+    await action(`/api/purchase/sale/${bid}`, 'POST', () => loadOrders('/api/purchase/purchases'), { sale_amount: amt });
+}
+
+async function action(url, method, cb, body = null) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(url, opts);
+    const d = await res.json(); if (d.code !== 0) return alert(d.msg);
+    alert(d.msg); closeModal(); cb();
 }

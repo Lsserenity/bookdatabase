@@ -59,9 +59,6 @@ function actionButtons(o) {
     if (o.purchase_status === 'paid' && o.onstage === 'no') {
         btns += `<button onclick="showOnstageModal(${o.purchase_id}, '${o.book.ISBN}')">上架</button>`;
     }
-    if (o.purchase_status === 'paid' && o.onstage === 'yes') {
-        btns += `<button onclick="showSaleModal(${o.book_id})">销售</button>`;
-    }
     return btns;
 }
 
@@ -160,25 +157,12 @@ function showOnstageModal(pid, isbn) {
     `; document.getElementById('modal-area').appendChild(modal);
 }
 async function submitOnstage(pid) {
-    const price = document.getElementById('onstage-price').value;
+    const price = document.getElementById('onstage-price').value.trim();
+    if (!price) {
+        return alert('请填写零售价');
+    }
     const ids = [pid];
-    await action('/api/purchase/onstage/batch', 'POST', () => loadOrders('/api/purchase/paid'), { purchase_ids: ids });
-}
-
-function showSaleModal(bid) {
-    closeModal(); const modal = document.createElement('div'); modal.className = 'modal-mask';
-    modal.innerHTML = `
-      <div class="modal">
-        <h3>销售 Book ID:${bid}</h3>
-        <input id="sale-amt" type="number" placeholder="销售数量"><br>
-        <button onclick="submitSale(${bid})">确定</button>
-        <button onclick="closeModal()">取消</button>
-      </div>
-    `; document.getElementById('modal-area').appendChild(modal);
-}
-async function submitSale(bid) {
-    const amt = document.getElementById('sale-amt').value;
-    await action(`/api/purchase/sale/${bid}`, 'POST', () => loadOrders('/api/purchase/purchases'), { sale_amount: amt });
+    await action('/api/purchase/onstage/batch', 'POST', () => loadOrders('/api/purchase/paid'), { purchase_ids: ids, retail_price: price });
 }
 
 async function action(url, method, cb, body = null) {
