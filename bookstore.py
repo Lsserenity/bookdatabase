@@ -1,5 +1,3 @@
-# 经典的，痛苦的，一针见血的，边学边开发
-
 from flask import Flask, render_template, redirect, session
 from config import Config    # 从配置文件读取数据库URI
 from database import db

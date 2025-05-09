@@ -26,6 +26,8 @@ function logoutInit() {
 // 搜索书籍
 async function searchBooks() {
     const params = new URLSearchParams();
+    const idVal = document.getElementById('book_id').value.trim();
+    if (idVal) params.append('book_id', idVal);
     ['ISBN', 'book_name', 'author', 'publisher'].forEach(key => {
         const v = document.getElementById(key.toLowerCase()).value.trim();
         if (v) params.append(key, v);

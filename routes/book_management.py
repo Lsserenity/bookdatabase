@@ -15,12 +15,15 @@ def search():
 
     # 可以使用书籍编号、书籍ISBN号、书名、作者、出版社等方式查询库存的相关书籍。
     data = request.args  # 获取前端传来的JSON数据
+    book_id = data.get('book_id', type=int)
     book_name = data.get('book_name')
     author = data.get('author')
     publisher = data.get('publisher')
     ISBN = data.get('ISBN')
 
     filters = []
+    if book_id is not None:
+        filters.append(Book.book_id == book_id)
     if book_name:
         filters.append(Book.book_name.contains(book_name))
     if author:
