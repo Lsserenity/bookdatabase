@@ -80,6 +80,9 @@ def buy_new():
     except ValueError:
         return jsonify({'code': 1, 'msg': '价格格式错误'}), 400
 
+    if b_rp <= 0:
+        return jsonify({'code': 1, 'msg': '价格必须大于零'}), 400
+
     book = Book(
         ISBN=isbn,
         book_name=b_name,
@@ -101,6 +104,9 @@ def buy_new():
         amount = int(amount)
     except ValueError:
         return jsonify({'code': 1, 'msg': '购买价格或购买数量格式错误'}), 400
+
+    if amount <= 0 or price <= 0:
+        return jsonify({'code': 1, 'msg': '购买数量或价格必须大于零'}), 400
 
     try:
         db.session.add(book)

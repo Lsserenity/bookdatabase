@@ -74,7 +74,7 @@ def modification(book_id):
     if not target or target.book_status == 'delete':
         return jsonify({
             'code': 1,
-            'msg': '没有修改目标，请输入中却的book_id'
+            'msg': '没有修改目标，请输入正确的book_id'
         }), 404
 
     if b_name:
@@ -86,6 +86,8 @@ def modification(book_id):
     if b_retail_price:
         try:
             target.retail_price = float(b_retail_price)
+            if target.retail_price < 0:
+                return jsonify({'code': 1, 'msg': '零售价格不能为负数'}), 400
         except ValueError:
             return jsonify({'code': 1, 'msg': '零售价格式错误'}), 400
 
