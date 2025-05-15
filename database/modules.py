@@ -6,8 +6,6 @@ from datetime import datetime
 from sqlalchemy import ForeignKey
 from .import db
 
-print(f"[bookstore] db id: {id(db)}")
-
 class User(db.Model):
 
     user_id = db.Column(db.Integer, primary_key=True)
@@ -30,19 +28,20 @@ class User(db.Model):
 class Book(db.Model):
 
     book_id = db.Column(db.Integer, primary_key=True)
-    ISBN = db.Column(db.String(13), unique=True, nullable=False)
-    book_name = db.Column(UnicodeText(), nullable=False)
-    publisher = db.Column(UnicodeText(), nullable=False)
-    author = db.Column(UnicodeText(), nullable=False)
+    ISBN = db.Column(db.String(13), unique=True, nullable=False, index=True)
+    book_name = db.Column(UnicodeText(), nullable=False, index=True)
+    publisher = db.Column(UnicodeText(), nullable=False, index=True)
+    author = db.Column(UnicodeText(), nullable=False, index=True)
     retail_price = db.Column(db.Numeric(5, 2), nullable=False)
     quantity = db.Column(db.Integer(), nullable=False)
     book_status = db.Column(db.Enum('normal', 'delete', 'offstage', name='book_status'), default='offstage', nullable=False)
     # 购买时候如果需要撤销的时候检查是否为之前没有的book的回滚函数
 
     def rollback_if_empty(self):
-        if self.quantity == 0:
+        if self.book_status == 'offstage':
             self.book_status = 'delete'
             db.session.commit()
+
 
     def to_dic(self):
         book = {

@@ -3,7 +3,7 @@ from database.modules import User
 from database import db
 
 user_bp = Blueprint('user', __name__)
-# 稍后在bookstore.py或routes/__init__.py中注册这个接口
+# 在bookstore.py或routes/__init__.py中注册这个接口
 
 
 # 用户登录接口，将信息存入session
@@ -40,7 +40,7 @@ def login():
         }), 401
 
 
-# 检查当前登录的用户时super还是normal
+# 检查当前登录的用户信息
 @user_bp.route('/me', methods=['GET'])
 def get_me():
     if 'user_id' not in session:
